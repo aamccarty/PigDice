@@ -15,6 +15,8 @@ import android.widget.TextView.OnEditorActionListener;
 import android.view.View.OnClickListener;
 
 
+
+
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -24,7 +26,7 @@ public class MainActivity extends Activity
     implements OnClickListener, OnEditorActionListener {
 
 
-    private Pig pig;
+    private Pig game;
     private EditText playerOneText;
     private EditText playerTwoText;
     private TextView scorePlayerOne;
@@ -40,21 +42,15 @@ public class MainActivity extends Activity
 
     private String playerOneName;
     private String playerTwoName;
-    //tracks if the game is running
-    private boolean gameInProgress = false;
-    //conditionally locks the roll die button if there is a winner
-    private boolean isWinner = false;
 
-    public void CurrentPlayers() {
-        this.playerOneName = this.playerOneText.getText().toString();
-        this.playerTwoName = this.playerTwoText.getText().toString();
-    }
+    private SharedPreferences savedValues;
 
 
-    Pig game;
+
 
     // Define SharedPreferences object
-    private SharedPreferences savedValues;
+
+    //savedValues = getSharedPreferences("savedValues", MODE_PRIVATE);
     // For logging and debugging
     private static final String TAG = "MainActivity";
 
@@ -67,6 +63,7 @@ public class MainActivity extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         playerOneText = (EditText)findViewById(R.id.playerOneText);
         playerTwoText = (EditText)findViewById(R.id.playerTwoText);
         currentPlayerView = (TextView)findViewById(R.id.currentPlayerView);
@@ -93,16 +90,22 @@ public class MainActivity extends Activity
             game.pointTotal = savedInstanceState.getInt("pointTotal", 0);
         }
 
+        endTurnButton.setOnClickListener(this);
+        newGameButton.setOnClickListener(this);
+        rollDieButton.setOnClickListener(this);
+        currentPlayerView.setOnEditorActionListener(this);
+        scorePlayerTwo.setOnEditorActionListener(this);
+        scorePlayerOne.setOnEditorActionListener(this);
         displayScores();
     }
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt("player1Score", game.getPlayer1Score());
-        outState.putInt("player2Score", game.getPlayer2Score());
-        outState.putString("player1Name", playerOneText.getText().toString());
-        outState.putString("player2Name", playerTwoText.getText().toString());
-        outState.putInt("pointTotal", game.pointTotal);
-        super.onSaveInstanceState(outState);
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putInt("player1Score", game.getPlayer1Score());
+        savedInstanceState.putInt("player2Score", game.getPlayer2Score());
+        savedInstanceState.putString("player1Name", playerOneText.getText().toString());
+        savedInstanceState.putString("player2Name", playerTwoText.getText().toString());
+        savedInstanceState.putInt("pointTotal", game.pointTotal);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     //Methods to use
@@ -150,6 +153,8 @@ public class MainActivity extends Activity
         this.dieView.setImageDrawable(drawableImage);
     }
 
+
+
     private void ResetPlayerView() {
         this.currentPlayerView.setText("Nobody");
     }
@@ -182,6 +187,10 @@ public class MainActivity extends Activity
     public void displayPointTotal(int total) {
         turnPointsText.setText(String.valueOf(total));
     }
+    public void CurrentPlayers() {
+        this.playerOneName = this.playerOneText.getText().toString();
+        this.playerTwoName = this.playerTwoText.getText().toString();
+    }
 
     //Start new game
     public void startNewGame() {
@@ -205,8 +214,8 @@ public class MainActivity extends Activity
         }
         // Resets counter for next player
         displayPointTotal(game.pointTotal);
-        pig.checkForWinner();
-        pig.getCurrentPlayer();
+        game.checkForWinner();
+        game.getCurrentPlayer();
     }
     public void rollGameDie() {
         // Random roll
@@ -249,6 +258,9 @@ public class MainActivity extends Activity
 
                 startNewGame();
                 break;
+
+            default:
+                throw new IllegalStateException("Unexpected value: " + v.getId());
         }
     }
 }
